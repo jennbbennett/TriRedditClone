@@ -2,7 +2,7 @@
   "name": "triredditclone",
   "version": "0.0.1",
   "description": "",
-  "main": "triRedditClone.js",
+  "main": "triRedditClone.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
