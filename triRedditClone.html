@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html ng-app="triRedditApp" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+  <title>Tri Reddit Clone</title>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+  <!-- Latest compiled and minified JavaScript -->
+  <link rel="stylesheet" href="./triRedditClone.css" </head>
+
+  <body ng-controller="triRedditController">
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="#">
+          <span>
+            <img src="triathlon.png" height="20px" width="20px">
+          </span> TriReddit Clone</a>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active">
+              <a href="#" ng-click="toggleAddPostShow()">
+                <span class="glyphicon glyphicon-plus"></span>
+                Submit Post</a>
+            </li>
+            <form class="navbar-form navbar-left" role="search">
+              <div class="form-group post-search">
+                <input type="text" class="form-control post-search" placeholder="Search" ng-model="searchKeyword">
+              </div>
+              <button type="submit" class="btn btn-default">Submit</button>
+            </form>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Sort by {{view.currentFilter}}<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li ng-repeat="filter in view.filterTerms"><a href="#" ng-click="setFilter(filter)">Sort by {{filter}}</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- /add post form -->
+    <div class="container postForm" ng-show="view.addPostShow">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <form name="addPostForm" ng-submit="addNewPost(post)" novalidate>
+            <div class="form-group">
+              <label for="title">Title</label>
+              <input type="text" class="form-control" name="title" id="title" ng-model="post.title" ng-minlength="5"  ng-maxlength="50" ng-class="{'error': addPostForm.title.$invalid && addPostForm.title.$touched}" placeholder="Post Title" required >
+            </div>
+            <div class="form-group">
+              <label for="author">Author</label>
+              <input type="text" class="form-control" name="author" id="author" ng-model="post.author" ng-minlength="5" ng-maxlength="50" ng-class="{'error': addPostForm.author.$invalid && addPostForm.author.$touched}" placeholder="Author Name" required>
+            </div>
+            <div class="form-group">
+              <label for="image_url">Image</label>
+              <input type="url" class="form-control" name="url" id="url" ng-model="post.image" ng-class="{'error': addPostForm.url.$invalid && addPostForm.url.$touched}" required placeholder="Image URL">
+            </div>
+            <div class="form-group">
+              <label for="description">Description</label>
+              <input type="text" class="form-control" name="description" id="description" ng-model="post.description" ng-minlength="5" ng-maxlength="255" ng-class="{'error': addPostForm.description.$invalid && addPostForm.description.$touched}" required placeholder="Description">
+            </div>
+            <button ng-disabled="addPostForm.$invalid" type="submit" class="btn btn-default" value="post">Add Post</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <!--post container  -->
+    <div class="container post-container">
+      <div class="row">
+        <div class="panel panel-default" ng-repeat="post in view.posts | orderBy: view.currentFilter | filter: searchKeyword">
+          <div class="panel-body">
+            <ul class="media-list">
+              <li class="media post-item">
+                <div class="media-left">
+                  <img class="media-object" ng-src="{{ post.image }}">
+                </div>
+                <div class="media-body">
+                  <h4 class="media-heading">{{post.title}} |
+                    <span class="glyphicon glyphicon-arrow-up" ng-click="post.votes = post.votes + 1"></span>
+                    <span class="glyphicon glyphicon-arrow-down" ng-click="post.votes = post.votes -1"></span>
+                    <span class="badge">{{post.votes}}</span>
+                  </h4>
+                  <p class="pull-right author">
+                    <strong> By: {{post.author}} </strong>
+                  </p>
+                  <p class="clear description">
+                    {{post.description}}
+                  </p>
+                  <p>
+                    <span class="glyphicon glyphicon-calendar"></span>
+                    {{formatDate(post.date)}} |
+                    <span ng-click="toggleCommmentsShow(post)">
+                      <span class="glyphicon glyphicon-comment"></span>
+                      <ng-pluralize count="post.comments.length" when="{1: '1 comment', 'other': '{{ post.comments.length }} comments'}"></ng-pluralize>
+                      |
+                    </span>
+                    <span ng-click="toggleAddCommmentShow(post)">
+                      <span class="glyphicon glyphicon-pencil"></span>
+                      Add comment
+                    </span>
+                  </p>
+
+                  <!-- add comment -->
+                  <div class="comment" ng-show="post.addCommentShow" id="commentForm">
+                    <div class="new-comment-form">
+                      <form name="addCommentForm" class="form-inline" ng-submit="addNewComment(post, newComment)">
+                        <div class="form-group">
+                          <label for="author">Author</label>
+                          <input type="text" class="form-control" id="author" required ng-minlength="3" placeholder="Jane Doe" ng-model="newComment.author">
+                          <p ng-show="addCommentForm.author.$touched && addCommentForm.author.$invalid">Please tell us your name!</p>
+                        </div>
+                        <div class="form-group">
+                          <label for="text">Comment</label>
+                          <input type="text" class="form-control" id="text" required ng-maxlength="140" placeholder="Comment" ng-model="newComment.text">
+                        </div>
+                        <button type="submit" class="btn btn-default">Add Comment</button>
+                      </form>
+                    </div>
+                  </div>
+
+                  <!-- comment container -->
+                  <div class="comment-container" ng-repeat="comment in post.comments" ng-show="post.commentsShow">
+                    <strong>{{comment.author}}</strong>
+                    <span>- {{comment.text}}</span>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /add post form -->
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.4/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular-animate.js"></script>
+    <script src="./triRedditClone.js"></script>
+
+  </body>
+
+</html>
